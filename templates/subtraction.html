@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subtraction Calculator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+    <header>
+        <h1>Subtraction Calculator</h1>
+    </header>
+
+    <main>
+        <form id="subtractionForm">
+            <label for="numbers">Enter numbers (separated by commas, fractions like 2/3):</label>
+            <input type="text" id="numbers" name="numbers" required placeholder="e.g., 2/3, 4/8">
+            <button type="submit">Calculate Subtraction</button>
+        </form>
+        <div id="result"></div>
+    </main>
+
+    <footer>
+        <button onclick="window.location.href='{{ url_for('index') }}'">Home</button>
+    </footer>
+
+    <script>
+        document.getElementById('subtractionForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const numbers = document.getElementById('numbers').value.split(',').map(num => num.trim());
+
+            if (numbers.some(num => num === '')) {
+                document.getElementById('result').textContent = 'Error: All fields are required.';
+                return;
+            }
+
+            fetch('/api/calculate_subtraction', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ numbers: numbers })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.result !== undefined) {
+                        document.getElementById('result').textContent = `Result: ${data.result}`;
+                    } else {
+                        document.getElementById('result').textContent = `Error: ${data.error}`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('result').textContent = 'Error: An unexpected error occurred.';
+                });
+        });
+    </script>
+</body>
+
+</html>

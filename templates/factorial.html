@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factorial Calculator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+    <header>
+        <h1>Factorial Calculator</h1>
+    </header>
+
+    <main>
+        <form id="factorialForm">
+            <label for="number">Enter a number (can be fractional):</label>
+            <input type="text" id="number" name="number" required placeholder="8 or 8.5">
+            <button type="submit">Calculate Factorial</button>
+        </form>
+        <div id="result"></div>
+    </main>
+
+    <footer>
+        <button onclick="window.location.href='{{ url_for('index') }}'">Home</button>
+    </footer>
+
+    <script>
+        document.getElementById('factorialForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const number = document.getElementById('number').value;
+            if (number.trim() === '') {
+                alert('Please enter a number.');
+                return;
+            }
+
+            fetch('/api/calculate_factorial', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ number: number })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.factorial !== undefined) {
+                        document.getElementById('result').textContent = `Factorial: ${data.factorial}`;
+                    } else {
+                        document.getElementById('result').textContent = `Error: ${data.error}`;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+
+</html>

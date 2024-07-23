@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BODMAS Calculator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+    <header>
+        <h1>BODMAS Calculator</h1>
+    </header>
+
+    <main>
+        <form id="bodmasForm">
+            <label for="expression">Enter expression:</label>
+            <input type="text" id="expression" name="expression" required
+                placeholder="e.g., (2/3 + 4/8) * 3, 2**3, 2**0.5, 3!">
+            <button type="submit">Calculate</button>
+        </form>
+        <div id="result"></div>
+    </main>
+
+    <footer>
+        <button onclick="window.location.href='{{ url_for('index') }}'">Home</button>
+    </footer>
+
+    <script>
+        document.getElementById('bodmasForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const expression = document.getElementById('expression').value;
+
+            fetch('/api/calculate_bodmas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ expression: expression })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.result_fraction !== undefined && data.result_decimal !== undefined) {
+                        document.getElementById('result').innerHTML = `Result: ${data.result_fraction} (Fraction), ${data.result_decimal} (Decimal)`;
+                    } else {
+                        document.getElementById('result').textContent = `Error: ${data.error}`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('result').textContent = 'Error: An unexpected error occurred.';
+                });
+        });
+    </script>
+</body>
+
+</html>

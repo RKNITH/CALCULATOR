@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Solver</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+    <header>
+        <h1>Math Solver</h1>
+    </header>
+
+    <main>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search topics...">
+        </div>
+        <a class="calculation" href="{{ url_for('addition_page') }}">Addition Calculator</a>
+        <a class="calculation" href="{{ url_for('subtraction_page') }}">Subtraction Calculator</a>
+        <a class="calculation" href="{{ url_for('multiplication_page') }}">Multiplication Calculator</a>
+        <a class="calculation" href="{{ url_for('division_page') }}">Division Calculator</a>
+        <a class="calculation" href="{{ url_for('bodmas_page') }}">BODMAS (+ - * / square, cube, squareroot, cuberoot...
+            )</a>
+        <a class="calculation" href="{{ url_for('lcm_page') }}">LCM Calculator</a>
+        <a class="calculation" href="{{ url_for('hcf_page') }}">HCF Calculator</a>
+        <a class="calculation" href="{{ url_for('factorial_page') }}">Factorial Calculator</a>
+    </main>
+
+    <footer>
+        <p id="footerText"></p>
+    </footer>
+
+    <script>
+        function updateFooterTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            const yearString = now.getFullYear();
+            document.getElementById('footerText').textContent = `Current Time: ${timeString}, Year: ${yearString}`;
+        }
+        setInterval(updateFooterTime, 1000);
+
+        document.getElementById('searchInput').addEventListener('input', function () {
+            const searchValue = this.value.toLowerCase();
+            const links = document.querySelectorAll('.calculation');
+
+            links.forEach(link => {
+                const linkText = link.textContent.toLowerCase();
+                if (linkText.includes(searchValue)) {
+                    link.style.display = 'block';
+                } else {
+                    link.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
