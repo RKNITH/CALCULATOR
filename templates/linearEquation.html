@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Equation Solver</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+
+        p {
+            text-align: center;
+        }
+
+        form {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input[type="number"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        h4 {
+            text-align: center;
+        }
+
+        #result {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #e9ecef;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            overflow-x: scroll;
+        }
+
+        fieldset {
+            border: none;
+            margin: 10px 0;
+        }
+
+        legend {
+            font-weight: bold;
+        }
+
+        #btn {
+            max-width: 50%;
+            margin: 0 auto;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Simultaneous Linear Equation Solver</h1>
+    <p>Enter the number of variables and their coefficients.</p>
+
+    <!-- Form to enter number of variables -->
+    <form id="variableForm">
+        <label for="numVariables">Number of Variables:</label>
+        <input type="number" id="numVariables" name="numVariables" min="2" max="5" required>
+        <button type="submit">Generate Input Fields</button>
+    </form>
+
+    <!-- Form to enter coefficients of equations -->
+    <form id="equationsForm" style="display:none;">
+        <div id="equationInputs"></div>
+        <button type="submit">Solve Equations</button>
+    </form>
+
+    <!-- Output display -->
+    <h4>Output:</h4>
+    <div id="result"></div>
+    <footer>
+        <button id="btn" onclick="window.location.href='{{ url_for('index') }}'">Home</button>
+    </footer>
+
+    <script>
+        document.getElementById('variableForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const numVariables = parseInt(document.getElementById('numVariables').value);
+            const equationInputs = document.getElementById('equationInputs');
+            equationInputs.innerHTML = '';
+
+            for (let i = 1; i <= numVariables; i++) {
+                let inputsHTML = `<fieldset>
+                                    <legend>Equation ${i}</legend>`;
+                for (let j = 1; j <= numVariables; j++) {
+                    inputsHTML += `<label for="var${i}_${j}">Coefficient of x${j}:</label>
+                                    <input type="number" id="var${i}_${j}" name="var${i}_${j}" required><br>`;
+                }
+                inputsHTML += `<label for="constant${i}">Constant:</label>
+                               <input type="number" id="constant${i}" name="constant${i}" required>
+                               </fieldset>`;
+                equationInputs.innerHTML += inputsHTML;
+            }
+
+            document.getElementById('equationsForm').style.display = 'block';
+        });
+
+        document.getElementById('equationsForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const numVariables = parseInt(document.getElementById('numVariables').value);
+            const equations = [];
+
+            for (let i = 1; i <= numVariables; i++) {
+                let coefficients = [];
+                for (let j = 1; j <= numVariables; j++) {
+                    const coeffElement = document.getElementById(`var${i}_${j}`);
+                    if (coeffElement) {
+                        coefficients.push(parseFloat(coeffElement.value.trim()));
+                    } else {
+                        console.error(`Element with ID var${i}_${j} not found`);
+                    }
+                }
+                const constantElement = document.getElementById(`constant${i}`);
+                if (constantElement) {
+                    const constant = parseFloat(constantElement.value.trim());
+                    coefficients.push(constant);
+                } else {
+                    console.error(`Element with ID constant${i} not found`);
+                }
+                equations.push(coefficients);
+            }
+
+            fetch('/api/solve_equations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ equations: equations })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.solution !== undefined) {
+                        document.getElementById('result').textContent = `Solution: ${JSON.stringify(data.solution)}`;
+                    } else {
+                        document.getElementById('result').textContent = `Error: ${data.error}`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('result').textContent = 'An error occurred while solving the equations.';
+                });
+        });
+    </script>
+</body>
+
+</html>

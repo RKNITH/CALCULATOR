@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logarithm Calculator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+    <header>
+        <h1>Logarithm Calculator</h1>
+    </header>
+
+    <main>
+        <form id="logForm">
+            <label for="number">Enter the number:</label>
+            <input type="text" id="number" name="number" required placeholder=" 10,    log₁₀ 100">
+
+            <label for="base">Enter the base:</label>
+            <input type="text" id="base" name="base" required placeholder="e.g., 10">
+
+            <button type="submit">Calculate Log</button>
+        </form>
+        <div id="result"></div>
+    </main>
+
+    <footer>
+        <button onclick="window.location.href='{{ url_for('index') }}'">Home</button>
+    </footer>
+
+    <script>
+        document.getElementById('logForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const number = document.getElementById('number').value.trim();
+            const base = document.getElementById('base').value.trim();
+
+            console.log("Sending data:", { number: number, base: base });  // Debugging line
+
+            fetch('/api/calculate_log', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ number: number, base: base })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.log !== undefined) {
+                        document.getElementById('result').textContent = `Log: ${data.log}`;
+                    } else {
+                        document.getElementById('result').textContent = `Error: ${data.error}`;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+
+</html>

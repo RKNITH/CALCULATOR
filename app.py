@@ -1,9 +1,10 @@
 from flask import Flask, request, jsonify, render_template
 from functools import reduce
+import math
 from math import gcd as math_gcd
 from fractions import Fraction
 from scipy.special import gamma
-from sympy import sympify, Rational
+from sympy import sympify, Rational, symbols, Eq, solve
 import re
 
 def create_app():
@@ -236,6 +237,112 @@ def create_app():
             return jsonify({'error': str(e)}), 400
         except Exception as e:
             return jsonify({'error': 'Invalid input. Please enter a valid number.'}), 400
+
+
+
+   # LOGARITHM
+    @app.route('/log')
+    def log_page():
+        return render_template('log.html')
+
+    @app.route('/api/calculate_log', methods=['POST'])
+    def api_calculate_log():
+        data = request.json
+        try:
+            print("Received data:", data)  # Debugging line
+            number = float(data['number'])
+            base = float(data['base'])
+            if base <= 0 or number <= 0:
+                raise ValueError("Base and number must be positive.")
+            log_result = math.log(number, base)
+            return jsonify({'log': log_result})
+        except ValueError as ve:
+            print("ValueError:", ve)  # More specific debugging
+            return jsonify({'error': 'Invalid input. Please enter positive numbers and base.'}), 400
+        except Exception as e:
+            print("Exception:", e)  # General debugging
+            return jsonify({'error': 'Invalid input. Please enter valid numbers and base.'}), 400
+
+
+# LINEAR EQUATION
+
+
+    @app.route('/linearEquation')
+    def linear_equation_page():
+        return render_template('linearEquation.html')
+
+    @app.route('/api/solve_equations', methods=['POST'])
+    def api_solve_equations():
+        data = request.json
+        try:
+            equations = data['equations']
+            num_vars = len(equations[0]) - 1  # Number of variables
+            variables = symbols(' '.join(f'x{i+1}' for i in range(num_vars)))
+            eqs = []
+
+            # Print received equations for debugging
+            print("Received equations:", equations)
+
+            for equation in equations:
+                lhs = sum(equation[i] * variables[i] for i in range(num_vars))
+                rhs = equation[-1]
+                eqs.append(Eq(lhs, rhs))
+
+            # Solve the equations
+            solution = solve(eqs, variables, dict=True)
+            solution_float = {str(k): float(v.evalf()) for k, v in solution[0].items()}
+            return jsonify({'solution': solution_float})
+        except Exception as e:
+            print("Exception:", e)  # General debugging
+            return jsonify({'error': 'Invalid input. Please enter valid equations.'}), 400
+    
+    
+# POLYNOMIAL EQUATION
+
+    @app.route('/polynomial')
+    def polynomial_page():
+        return render_template('polynomial.html')
+
+    @app.route('/api/solve_polynomial', methods=['POST'])
+    def api_solve_polynomial():
+        data = request.json
+        try:
+            coefficients = data['coefficients']
+            # Define the polynomial equation
+            x = symbols('x')
+            polynomial = sum(coeff * x**i for i, coeff in enumerate(coefficients[::-1]))
+
+            # Solve the polynomial equation
+            solutions = solve(polynomial, x)
+            solutions_str = [str(sol.evalf()) for sol in solutions]
+
+            return jsonify({'solution': solutions_str})
+        except Exception as e:
+            print("Exception:", e)  # General debugging
+            return jsonify({'error': 'Invalid input. Please enter valid coefficients.'}), 400
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     return app

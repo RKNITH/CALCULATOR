@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polynomial Equation Solver</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+
+        p {
+            text-align: center;
+        }
+
+        form {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input[type="number"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        h4 {
+            text-align: center;
+        }
+
+        #result {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #e9ecef;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            overflow: scroll;
+        }
+
+        fieldset {
+            border: none;
+            margin: 10px 0;
+        }
+
+        legend {
+            font-weight: bold;
+        }
+
+        #btn {
+            max-width: 50%;
+            margin: 0 auto;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Polynomial Equation Solver</h1>
+    <p>Enter the degree of the polynomial equation.</p>
+
+    <!-- Form to enter polynomial degree -->
+    <form id="degreeForm">
+        <label for="degree">Degree of Polynomial:</label>
+        <input type="number" id="degree" name="degree" min="1" max="10" required>
+        <button type="submit">Generate Input Fields</button>
+    </form>
+
+    <!-- Form to enter coefficients of the polynomial -->
+    <form id="polynomialForm" style="display:none;">
+        <div id="polynomialInputs"></div>
+        <button type="submit">Solve Equation</button>
+    </form>
+
+    <!-- Output display -->
+    <h4>Output:</h4>
+    <div id="result"></div>
+    <footer>
+        <button id="btn" onclick="window.location.href='{{ url_for('index') }}'">Home</button>
+    </footer>
+
+    <script>
+        document.getElementById('degreeForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const degree = parseInt(document.getElementById('degree').value);
+            const polynomialInputs = document.getElementById('polynomialInputs');
+            polynomialInputs.innerHTML = '';
+
+            // Create input fields for polynomial coefficients based on the degree
+            for (let i = degree; i >= 0; i--) {
+                polynomialInputs.innerHTML += `<label for="coeff${i}">Coefficient of x<sup>${i}</sup>:</label>
+                                               <input type="number" id="coeff${i}" name="coeff${i}" required><br>`;
+            }
+
+            document.getElementById('polynomialForm').style.display = 'block';
+        });
+
+        document.getElementById('polynomialForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const degree = parseInt(document.getElementById('degree').value);
+            const coefficients = [];
+
+            for (let i = degree; i >= 0; i--) {
+                const coeffElement = document.getElementById(`coeff${i}`);
+                if (coeffElement) {
+                    coefficients.push(parseFloat(coeffElement.value.trim()));
+                } else {
+                    console.error(`Element with ID coeff${i} not found`);
+                }
+            }
+
+            fetch('/api/solve_polynomial', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ coefficients: coefficients })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.solution !== undefined) {
+                        document.getElementById('result').innerHTML = `Solution: ${data.solution.map(sol => `<p>${sol}</p>`).join('')}`;
+                    } else {
+                        document.getElementById('result').textContent = `Error: ${data.error}`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('result').textContent = 'An error occurred while solving the equation.';
+                });
+        });
+    </script>
+</body>
+
+</html>
